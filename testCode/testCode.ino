@@ -19,6 +19,8 @@
 #define S5    P4
 #define PB1   39
 #define PB2   34
+#define ENA   25
+#define ENB   14
 //================================================
 
 //Interrupt Mapping
@@ -38,6 +40,13 @@ BluetoothSerial SerialBT;
 
 //================================================
 
+//Setting PWM Properties
+const int freq = 1000; 
+const byte speed1_Channel = 0; 
+const byte speed2_Channel = 1;
+const byte resolution = 8; 
+byte dutyCycle=0;
+
 //Global Variable
 bool sensorDetected = false;
 bool PB1_old = true;
@@ -55,19 +64,28 @@ void setup()
 
  pinMode(PB1, INPUT);
  pinMode(PB2, INPUT);
-
-  IC1.pinMode(S1, INPUT);
-  IC1.pinMode(S2, INPUT);
-  IC1.pinMode(S3, INPUT);
-  IC1.pinMode(S4, INPUT);
-  IC1.pinMode(S5, INPUT);
-	// Set pinMode to OUTPUT
+ pinMode(ENA, OUTPUT);
+ pinMode(ENB, OUTPUT);
+  //Set IC1 pinMode
+  IC1.pinMode(S1, INPUT_PULLUP);
+  IC1.pinMode(S2, INPUT_PULLUP);
+  IC1.pinMode(S3, INPUT_PULLUP);
+  IC1.pinMode(S4, INPUT_PULLUP);
+  IC1.pinMode(S5, INPUT_PULLUP);
+	// Set IC2 pinMode
 	IC2.pinMode(LED8, OUTPUT);
 	IC2.pinMode(LED7, OUTPUT);
   IC2.pinMode(LED6, OUTPUT);
   IC2.pinMode(BUZ, OUTPUT);
-	IC1.begin();
-	IC2.begin();
+  IC1.begin();
+  IC2.begin();
+
+  //Set PWM
+  ledcSetup(speed1_Channel, freq, resolution);
+  ledcSetup(speed2_Channel, freq, resolution);
+  ledcAttachPin(ENA, speed1_Channel);
+  ledcAttachPin(ENB, speed2_Channel);
+  
 }
 
 void loop()
