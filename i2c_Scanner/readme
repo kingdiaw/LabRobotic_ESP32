@@ -1,0 +1,2 @@
+Slide S1 to ON
+ESP32 will detect THREE (3) slave address which are 0x20, 0x21 & 0x3C
