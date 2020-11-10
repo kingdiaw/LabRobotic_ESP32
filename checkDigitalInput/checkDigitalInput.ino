@@ -12,6 +12,8 @@
 #define S3    P2
 #define S4    P3
 #define S5    P4
+#define PB1   39
+#define PB2   34
 //================================================
 
 //Interrupt Mapping
@@ -32,10 +34,18 @@ PCF8574 IC2 (0x20);
 
 //Global Variable
 bool sensorDetected = false;
+bool PB1_old = true;
+bool PB2_old = true;
+bool PB1_new, PB2_new;
+bool state;
+unsigned long ledTick;
 
 void setup()
 {
 	Serial.begin(115200);
+
+ pinMode(PB1, INPUT);
+ pinMode(PB2, INPUT);
 
   IC1.pinMode(S1, INPUT);
   IC1.pinMode(S2, INPUT);
@@ -53,16 +63,39 @@ void setup()
 
 void loop()
 {
-	IC2.digitalWrite(BUZ, HIGH);
-  IC2.digitalWrite(LED8,HIGH);
-  IC2.digitalWrite(LED7,HIGH);
-  IC2.digitalWrite(LED6,HIGH);
-	delay(500);
-	IC2.digitalWrite(BUZ, LOW);
-  IC2.digitalWrite(LED8, LOW);
-  IC2.digitalWrite(LED7, LOW);
-  IC2.digitalWrite(LED6, LOW);
-	delay(500);
+
+  //Handle Blinking LEDs and buzzer
+  //======================================
+  if(millis()>ledTick){
+    ledTick = millis()+500;
+    state ^=1;  //toggle it
+    IC2.digitalWrite(BUZ, state);
+    IC2.digitalWrite(LED8,state);
+    IC2.digitalWrite(LED7,state);
+    IC2.digitalWrite(LED6,state);    
+  }
+  //=======================================
+
+  //Handle Read PB state
+  //=======================================
+ PB1_new = digitalRead(PB1);
+ PB2_new = digitalRead(PB2);
+ if(PB1_old != PB1_new){
+  PB1_old = PB1_new;
+    if(PB1_new == LOW){
+      Serial.println("PB1 Pressed!");
+    }
+ }
+ if(PB2_old != PB2_new){
+  PB2_old = PB2_new;
+    if(PB2_new == LOW){
+      Serial.println("PB2 Pressed!");
+    }
+ }
+ //==========================================
+
+ //Handle IC1 Pin Change (Interrupt)
+ //========================================
  if(sensorDetected){
    Serial.print("Sensor Array:");
    Serial.print(IC1.digitalRead(S1));
@@ -72,8 +105,14 @@ void loop()
    Serial.println(IC1.digitalRead(S5));
    sensorDetected = false;
    }
+ //=======================================
+ 
 }
 
+//Interrupt Service Routine
+//========================================
 void readSensorArray(){
   sensorDetected = true;
+  delay(100);
 }
+//========================================
