@@ -1,6 +1,8 @@
 #include "Arduino.h"
 #include "PCF8574.h"  //Library:https://github.com/xreef/PCF8574_library
 
+//Mapping I/O
+//================================================
 #define LED8  P7
 #define LED7  P6
 #define LED6  P5
@@ -10,11 +12,26 @@
 #define S3    P2
 #define S4    P3
 #define S5    P4
+//================================================
 
+//Interrupt Mapping
+//================================================
+#define ESP32_INTERRUPTED_PIN 26
+
+//Function ISR
+void readSensorArray();
+//================================================
+
+//Mapping Object
+//===============================================
 // Set i2c address
-PCF8574 IC1 (0x21);
+PCF8574 IC1 (0x21,ESP32_INTERRUPTED_PIN,readSensorArray);
 PCF8574 IC2 (0x20);
 
+//================================================
+
+//Global Variable
+bool sensorDetected = false;
 
 void setup()
 {
@@ -46,10 +63,17 @@ void loop()
   IC2.digitalWrite(LED7, LOW);
   IC2.digitalWrite(LED6, LOW);
 	delay(500);
- Serial.print("Sensor Array:");
- Serial.print(IC1.digitalRead(S1));
- Serial.print(IC1.digitalRead(S2));
- Serial.print(IC1.digitalRead(S3));
- Serial.print(IC1.digitalRead(S4));
- Serial.println(IC1.digitalRead(S5));
+ if(sensorDetected){
+   Serial.print("Sensor Array:");
+   Serial.print(IC1.digitalRead(S1));
+   Serial.print(IC1.digitalRead(S2));
+   Serial.print(IC1.digitalRead(S3));
+   Serial.print(IC1.digitalRead(S4));
+   Serial.println(IC1.digitalRead(S5));
+   sensorDetected = false;
+   }
+}
+
+void readSensorArray(){
+  sensorDetected = true;
 }
