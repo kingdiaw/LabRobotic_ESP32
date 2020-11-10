@@ -21,6 +21,10 @@
 #define PB2   34
 #define ENA   25
 #define ENB   14
+#define IN1   P0
+#define IN2   P1
+#define IN3   P2
+#define IN4   P3
 //================================================
 
 //Interrupt Mapping
@@ -53,7 +57,7 @@ bool PB1_old = true;
 bool PB2_old = true;
 bool PB1_new, PB2_new;
 bool state;
-unsigned char command;
+unsigned char command, command_old;
 unsigned long ledTick;
 
 void setup()
@@ -76,9 +80,15 @@ void setup()
 	IC2.pinMode(LED8, OUTPUT);
 	IC2.pinMode(LED7, OUTPUT);
   IC2.pinMode(LED6, OUTPUT);
-  IC2.pinMode(BUZ, OUTPUT);
+  IC2.pinMode(BUZ, OUTPUT); 
+  IC2.pinMode(IN1,OUTPUT);
+  IC2.pinMode(IN2,OUTPUT);
+  IC2.pinMode(IN3,OUTPUT);
+  IC2.pinMode(IN4,OUTPUT); 
   IC1.begin();
   IC2.begin();
+
+  IC2.digitalWrite(BUZ, LOW);
 
   //Set PWM
   ledcSetup(speed1_Channel, freq, resolution);
@@ -101,12 +111,50 @@ void loop()
   }  
   //======================================
 
+  //Handle command received
+  //======================================
+  if(command_old != command){
+    if(command == 'f'){
+      SerialBT.println("M1 LEFT FORWARD");
+      IC2.digitalWrite(IN1, HIGH);
+      IC2.digitalWrite(IN2, LOW);
+      SerialBT.println("M2 RIGHT FORWARD");
+      IC2.digitalWrite(IN3,HIGH);
+      IC2.digitalWrite(IN4,LOW);
+      dutyCycle = 255;
+      ledcWrite(speed1_Channel, dutyCycle);
+      ledcWrite(speed2_Channel, dutyCycle);      
+    }
+    else if(command == 'b'){
+      SerialBT.println("M1 LEFT BACKWARD");
+      IC2.digitalWrite(IN1, LOW);
+      IC2.digitalWrite(IN2, HIGH);
+      SerialBT.println("M2 RIGHT BACKWARD");
+      IC2.digitalWrite(IN3,LOW);
+      IC2.digitalWrite(IN4,HIGH);
+      dutyCycle = 255;
+      ledcWrite(speed1_Channel, dutyCycle);
+      ledcWrite(speed2_Channel, dutyCycle);      
+    }
+    else{
+      SerialBT.println("M1 LEFT STOP");
+      IC2.digitalWrite(IN1, LOW);
+      IC2.digitalWrite(IN2, LOW);
+      SerialBT.println("M2 RIGHT STOP");
+      IC2.digitalWrite(IN3,LOW);
+      IC2.digitalWrite(IN4,LOW);
+      dutyCycle = 0;
+      ledcWrite(speed1_Channel, dutyCycle);
+      ledcWrite(speed2_Channel, dutyCycle);      
+    }
+    command_old = command;
+  }
+
   //Handle Blinking LEDs and buzzer
   //======================================
   if(millis()>ledTick){
     ledTick = millis()+500;
     state ^=1;  //toggle it
-    IC2.digitalWrite(BUZ, state);
     IC2.digitalWrite(LED8,state);
     IC2.digitalWrite(LED7,state);
     IC2.digitalWrite(LED6,state);    
