@@ -1,6 +1,10 @@
 #include "Arduino.h"
 #include "BluetoothSerial.h"
 #include "PCF8574.h"  //Library:https://github.com/xreef/PCF8574_library
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h> //By Adafruit Version 2.4.0 Oled 128x32
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
@@ -35,15 +39,8 @@
 void readSensorArray();
 //================================================
 
-//Mapping Object
-//===============================================
-// Set i2c address
-PCF8574 IC1 (0x21,ESP32_INTERRUPTED_PIN,readSensorArray);
-PCF8574 IC2 (0x20);
-BluetoothSerial SerialBT;
-
+//Setting Parameter for Peripheral
 //================================================
-
 //Setting PWM Properties
 const int freq = 1000; 
 const byte speed1_Channel = 0; 
@@ -51,6 +48,24 @@ const byte speed2_Channel = 1;
 const byte resolution = 8; 
 byte dutyCycle=0;
 
+//Setting OLED Pixels
+const byte SCREEN_WIDTH = 128;
+const byte SCREEN_HEIGHT = 32;
+const byte OLED_RESET = 4;
+const byte LINE1 = 0;
+const byte LINE2 = 8;
+const byte LINE3 = 16;
+const byte LINE4 = 24;
+
+//Mapping Object
+//===============================================
+// Set i2c address
+PCF8574 IC1 (0x21,ESP32_INTERRUPTED_PIN,readSensorArray);
+PCF8574 IC2 (0x20);
+BluetoothSerial SerialBT;
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+//================================================
 //Global Variable
 bool sensorDetected = false;
 bool PB1_old = true;
@@ -65,7 +80,16 @@ void setup()
   Serial.begin(115200);
   SerialBT.begin("ESP32test"); //Bluetooth device name
   Serial.println("The device started, now you can pair it with bluetooth!");
-
+ 
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
+    Serial.println(F("SSD1306 allocation failed"));
+  }
+  display.clearDisplay();
+  oled_print("Hello",0,LINE1);
+  oled_print("World!!Yes Jadi",0,LINE2);
+  oled_print("This is 3rd line",0,LINE3);
+  oled_print("This is last line",0,LINE4);
+  
  pinMode(PB1, INPUT);
  pinMode(PB2, INPUT);
  pinMode(ENA, OUTPUT);
@@ -201,3 +225,16 @@ void readSensorArray(){
   delay(100);
 }
 //========================================
+
+//User Define Function
+//========================================
+void oled_print(const char* str, byte col,byte row){
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(col,row);
+  display.println(str);
+  display.display();
+}
+void oled_clear(){
+  display.clearDisplay();
+}
