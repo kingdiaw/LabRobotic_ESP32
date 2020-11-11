@@ -29,6 +29,7 @@
 #define IN2   P1
 #define IN3   P2
 #define IN4   P3
+#define VR    32
 //================================================
 
 //Interrupt Mapping
@@ -74,6 +75,7 @@ bool PB1_new, PB2_new;
 bool state;
 unsigned char command, command_old;
 unsigned long ledTick;
+unsigned long adcTick;
 
 void setup()
 {
@@ -85,10 +87,6 @@ void setup()
     Serial.println(F("SSD1306 allocation failed"));
   }
   display.clearDisplay();
-  oled_print("Hello",0,LINE1);
-  oled_print("World!!Yes Jadi",0,LINE2);
-  oled_print("This is 3rd line",0,LINE3);
-  oled_print("This is last line",0,LINE4);
   
  pinMode(PB1, INPUT);
  pinMode(PB2, INPUT);
@@ -202,6 +200,17 @@ void loop()
     }
  }
  //==========================================
+
+ //Handle ADC
+ //==========================================
+ if(millis()> adcTick){
+  char strbuf[32];
+  adcTick = millis()+500;
+  int adcRes = analogRead(VR);
+  sprintf(strbuf,"ADC:%d",adcRes);
+  oled_clear();
+  oled_print(strbuf,0,LINE1);
+ }
 
  //Handle IC1 Pin Change (Interrupt)
  //========================================
