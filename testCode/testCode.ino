@@ -5,6 +5,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h> //By Adafruit Version 2.4.0 Oled 128x32
+#include <PixySPI_SS_eps32.h>
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
@@ -65,6 +66,7 @@ PCF8574 IC1 (0x21,ESP32_INTERRUPTED_PIN,readSensorArray);
 PCF8574 IC2 (0x20);
 BluetoothSerial SerialBT;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+PixySPI_SS pixy;
 
 //================================================
 //Global Variable
@@ -87,6 +89,8 @@ void setup()
     Serial.println(F("SSD1306 allocation failed"));
   }
   display.clearDisplay();
+
+  pixy.init();
   
  pinMode(PB1, INPUT);
  pinMode(PB2, INPUT);
@@ -122,6 +126,35 @@ void setup()
 
 void loop()
 {
+  //Handle Pixy CAM
+  //======================================
+  static int i = 0;
+  int j;
+  uint16_t blocks;
+  char buf[32]; 
+  // grab blocks!
+  blocks = pixy.getBlocks();
+// If there are detect blocks, print them!
+  if (blocks)
+  {
+    i++;
+    
+    // do this (print) every 50 frames because printing every
+    // frame would bog down the Arduino
+    if (i%50==0)
+    {
+      sprintf(buf, "Detected %d:\n", blocks);
+      Serial.print(buf);
+      for (j=0; j<blocks; j++)
+      {
+        sprintf(buf, "  block %d: ", j);
+        Serial.print(buf); 
+        pixy.blocks[j].print();
+      }
+    }
+  }  
+
+  
   //Handle Serial-Bluetooh Comm
   //======================================
   if (Serial.available()) {
