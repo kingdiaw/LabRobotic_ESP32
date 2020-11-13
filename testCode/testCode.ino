@@ -7,6 +7,7 @@
 #include <Adafruit_SSD1306.h> //By Adafruit Version 2.4.0 Oled 128x32
 #include <PixySPI_SS_eps32.h>
 #include <Ultrasonic.h>
+#include <ESP32Servo.h> 
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
@@ -34,6 +35,8 @@
 #define VR    32
 #define TRIG  12
 #define ECHO  35
+#define SERVO 15    //J4
+#define SERVO2  33  //J5
 
 //================================================
 
@@ -63,6 +66,16 @@ const byte LINE2 = 8;
 const byte LINE3 = 16;
 const byte LINE4 = 24;
 
+//Setting ADC
+const int ADC_Max = 4096;
+
+//Setting RC Servo Motor
+const int minDutyCycle = 500;
+const int maxDutyCycle = 2400;
+const int minDegree = 0;
+const int maxDegree = 180;
+
+
 //Mapping Object
 //===============================================
 // Set i2c address
@@ -72,6 +85,7 @@ BluetoothSerial SerialBT;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 PixySPI_SS pixy;
 Ultrasonic ultrasonic(TRIG,ECHO);
+Servo myservo;  // create servo object to control a servo
 
 //================================================
 //Global Variable
@@ -89,6 +103,7 @@ unsigned long ledTick;
 unsigned long adcTick;
 unsigned long hcsr04Tick;
 unsigned long oledTick;
+unsigned long servoTick;
 
 void setup()
 {
@@ -109,6 +124,7 @@ void setup()
  pinMode(PB2, INPUT);
  pinMode(ENA, OUTPUT);
  pinMode(ENB, OUTPUT);
+ pinMode(LED_BUILTIN, OUTPUT);
   //Set IC1 pinMode
   IC1.pinMode(S1, INPUT_PULLUP);
   IC1.pinMode(S2, INPUT_PULLUP);
@@ -134,6 +150,14 @@ void setup()
   ledcSetup(speed2_Channel, freq, resolution);
   ledcAttachPin(ENA, speed1_Channel);
   ledcAttachPin(ENB, speed2_Channel);
+
+  // Allow allocation of all timers
+  ESP32PWM::allocateTimer(0);
+  ESP32PWM::allocateTimer(1);
+  ESP32PWM::allocateTimer(2);
+  ESP32PWM::allocateTimer(3);
+  myservo.setPeriodHertz(50);// Standard 50hz servo
+  myservo.attach(SERVO, minDutyCycle, maxDutyCycle); 
   
 }
 
@@ -150,12 +174,14 @@ void loop()
 // If there are detect blocks, print them!
   if (blocks)
   {
-    i++;
-    
+     
+   i++;
     // do this (print) every 50 frames because printing every
     // frame would bog down the Arduino
     if (i%50==0)
     {
+      sprintf(line3_buf,"sig:%d",pixy.blocks[i].signature);
+      sprintf(line4_buf,"x:%d y:%d",pixy.blocks[i].x,pixy.blocks[i].y);      
       sprintf(buf, "Detected %d:\n", blocks);
       Serial.print(buf);
       for (j=0; j<blocks; j++)
@@ -166,6 +192,18 @@ void loop()
       }
     }
   } 
+
+  //Handle Servo
+  //=============================================
+  if(millis() > servoTick){
+    uint16_t val;
+    servoTick = millis()+200;
+    val = analogRead(VR);
+    val = map(val, 0, ADC_Max, minDegree, maxDegree);
+    myservo.write(val); 
+  }
+
+  //=============================================
 
   //Handle HCSR04 Ultrasonic Sensor
   //=============================================
@@ -270,22 +308,26 @@ void loop()
  }
 
  //Handle Oled Refresh Display
+ //========================================
  if(millis()> oledTick){
   oledTick = millis()+1000;
   oled_clear();
   oled_print(line1_buf,0,LINE1);
   oled_print(line2_buf,0,LINE2);
+  oled_print(line3_buf,0,LINE3);
+  oled_print(line4_buf,0,LINE4);
  }
+ //=======================================
 
  //Handle IC1 Pin Change (Interrupt)
  //========================================
  if(sensorDetected){
-   Serial.print("Sensor Array:");
-   Serial.print(IC1.digitalRead(S1));
-   Serial.print(IC1.digitalRead(S2));
-   Serial.print(IC1.digitalRead(S3));
-   Serial.print(IC1.digitalRead(S4));
-   Serial.println(IC1.digitalRead(S5));
+//   Serial.print("Sensor Array:");
+//   Serial.print(IC1.digitalRead(S1));
+//   Serial.print(IC1.digitalRead(S2));
+//   Serial.print(IC1.digitalRead(S3));
+//   Serial.print(IC1.digitalRead(S4));
+//   Serial.println(IC1.digitalRead(S5));
    sensorDetected = false;
    }
  //=======================================
