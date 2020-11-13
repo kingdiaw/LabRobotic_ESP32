@@ -6,6 +6,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h> //By Adafruit Version 2.4.0 Oled 128x32
 #include <PixySPI_SS_eps32.h>
+#include <Ultrasonic.h>
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
@@ -31,6 +32,9 @@
 #define IN3   P2
 #define IN4   P3
 #define VR    32
+#define TRIG  12
+#define ECHO  35
+
 //================================================
 
 //Interrupt Mapping
@@ -67,6 +71,7 @@ PCF8574 IC2 (0x20);
 BluetoothSerial SerialBT;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 PixySPI_SS pixy;
+Ultrasonic ultrasonic(TRIG,ECHO);
 
 //================================================
 //Global Variable
@@ -75,9 +80,15 @@ bool PB1_old = true;
 bool PB2_old = true;
 bool PB1_new, PB2_new;
 bool state;
+char line1_buf[32];
+char line2_buf[32];
+char line3_buf[32];
+char line4_buf[32];
 unsigned char command, command_old;
 unsigned long ledTick;
 unsigned long adcTick;
+unsigned long hcsr04Tick;
+unsigned long oledTick;
 
 void setup()
 {
@@ -91,6 +102,8 @@ void setup()
   display.clearDisplay();
 
   pixy.init();
+
+  ultrasonic.setTimeout(40000UL);
   
  pinMode(PB1, INPUT);
  pinMode(PB2, INPUT);
@@ -152,7 +165,20 @@ void loop()
         pixy.blocks[j].print();
       }
     }
-  }  
+  } 
+
+  //Handle HCSR04 Ultrasonic Sensor
+  //=============================================
+  if(millis()>hcsr04Tick){
+    char buf[32];
+    uint8_t jarak;
+    hcsr04Tick = millis()+1000;
+    jarak = ultrasonic.read();
+    Serial.print("Distance in CM:");
+    Serial.println(jarak);
+    sprintf(line2_buf,"DISTANCE:%dCM",jarak);    
+  }
+  //=============================================
 
   
   //Handle Serial-Bluetooh Comm
@@ -240,9 +266,15 @@ void loop()
   char strbuf[32];
   adcTick = millis()+500;
   int adcRes = analogRead(VR);
-  sprintf(strbuf,"ADC:%d",adcRes);
+  sprintf(line1_buf,"ADC:%d",adcRes);
+ }
+
+ //Handle Oled Refresh Display
+ if(millis()> oledTick){
+  oledTick = millis()+1000;
   oled_clear();
-  oled_print(strbuf,0,LINE1);
+  oled_print(line1_buf,0,LINE1);
+  oled_print(line2_buf,0,LINE2);
  }
 
  //Handle IC1 Pin Change (Interrupt)
@@ -264,7 +296,6 @@ void loop()
 //========================================
 void readSensorArray(){
   sensorDetected = true;
-  delay(100);
 }
 //========================================
 
