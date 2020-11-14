@@ -5,8 +5,8 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h> //By Adafruit Version 2.4.0 Oled 128x32
-#include <PixySPI_SS_eps32.h>
-#include <Ultrasonic.h>
+#include <PixySPI_SS_eps32.h> //https://drive.google.com/file/d/1z82DBqcuNWMVMzOchMi640mwvrnkQEqq/view?usp=sharing 
+#include <Ultrasonic.h>       //Ultrasonic by Erick Simões version 3.0.0
 #include <ESP32Servo.h> 
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
