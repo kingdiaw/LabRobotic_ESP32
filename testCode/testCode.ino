@@ -173,6 +173,7 @@ void loop()
   char buf[32]; 
   // grab blocks!
   blocks = pixy.getBlocks();
+  
 // If there are detect blocks, print them!
   if (blocks)
   {
