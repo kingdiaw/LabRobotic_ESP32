@@ -120,20 +120,22 @@ void setup()
 
   ultrasonic.setTimeout(40000UL);
   
- pinMode(PB1, INPUT);
- pinMode(PB2, INPUT);
- pinMode(ENA, OUTPUT);
- pinMode(ENB, OUTPUT);
- pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(PB1, INPUT);
+  pinMode(PB2, INPUT);
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+  
   //Set IC1 pinMode
   IC1.pinMode(S1, INPUT_PULLUP);
   IC1.pinMode(S2, INPUT_PULLUP);
   IC1.pinMode(S3, INPUT_PULLUP);
   IC1.pinMode(S4, INPUT_PULLUP);
   IC1.pinMode(S5, INPUT_PULLUP);
-	// Set IC2 pinMode
-	IC2.pinMode(LED8, OUTPUT);
-	IC2.pinMode(LED7, OUTPUT);
+  
+  // Set IC2 pinMode
+  IC2.pinMode(LED8, OUTPUT);
+  IC2.pinMode(LED7, OUTPUT);
   IC2.pinMode(LED6, OUTPUT);
   IC2.pinMode(BUZ, OUTPUT); 
   IC2.pinMode(IN1,OUTPUT);
