@@ -1,0 +1,308 @@
+#include "Arduino.h"
+#include "BluetoothSerial.h"
+#include "PCF8574.h"  //Library:https://github.com/xreef/PCF8574_library
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h> //By Adafruit Version 2.4.0 Oled 128x32
+#include <PixySPI_SS_eps32.h> //https://drive.google.com/file/d/1z82DBqcuNWMVMzOchMi640mwvrnkQEqq/view?usp=sharing 
+
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
+#endif
+
+//Mapping I/O
+//================================================
+#define LED8  P7
+#define LED7  P6
+#define LED6  P5
+#define BUZ   P4
+#define PB1   39
+#define PB2   34
+#define ENA   25
+#define ENB   14
+#define IN1   P0
+#define IN2   P1
+#define IN3   P2
+#define IN4   P3
+#define VR    32
+
+//================================================
+
+//Setting Parameter for Peripheral
+//================================================
+//Setting PWM Properties
+const int freq = 1000; 
+const byte speed1_Channel = 0; 
+const byte speed2_Channel = 1;
+const byte resolution = 8; 
+byte dutyCycle=0;
+
+//Setting OLED Pixels
+const byte SCREEN_WIDTH = 128;
+const byte SCREEN_HEIGHT = 32;
+const byte OLED_RESET = 4;
+const byte LINE1 = 0;
+const byte LINE2 = 8;
+const byte LINE3 = 16;
+const byte LINE4 = 24;
+
+//Setting ADC
+const int ADC_Max = 4096;
+
+
+//Setting Color Tracking
+int signature = 0;
+int x = 0;                      //positon x axis
+int y = 0;                      //position y axis
+unsigned int width = 0;         //object's width
+unsigned int height = 0;        //object's height
+unsigned int area = 0;
+unsigned int newarea = 0;
+int Xmin = 130;                  //min x position
+int Xmax = 230;                 //max x position
+int maxArea = 0;
+int minArea = 0;
+static int i = 0;
+
+//Mapping Object
+//===============================================
+// Set i2c address
+PCF8574 IC2 (0x20);
+BluetoothSerial SerialBT;
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+PixySPI_SS pixy;
+
+//================================================
+//Global Variable
+bool PB1_old = true;
+bool PB2_old = true;
+bool PB1_new, PB2_new;
+bool state;
+bool onceFlag;
+char line1_buf[32];
+char line2_buf[32];
+char line3_buf[32];
+char line4_buf[32];
+unsigned long ledTick;
+unsigned long oledTick;
+unsigned long previous_time;
+int val;
+
+void setup()
+{
+  Serial.begin(115200);
+  SerialBT.begin("ESP32test"); //Bluetooth device name
+  Serial.println("The device started, now you can pair it with bluetooth!");
+ 
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
+    Serial.println(F("SSD1306 allocation failed"));
+  }
+  display.clearDisplay();
+
+  pixy.init();
+  
+  pinMode(PB1, INPUT);
+  pinMode(PB2, INPUT);
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+  
+  // Set IC2 pinMode
+  IC2.pinMode(LED8, OUTPUT);
+  IC2.pinMode(LED7, OUTPUT);
+  IC2.pinMode(LED6, OUTPUT);
+  IC2.pinMode(BUZ, OUTPUT); 
+  IC2.pinMode(IN1,OUTPUT);
+  IC2.pinMode(IN2,OUTPUT);
+  IC2.pinMode(IN3,OUTPUT);
+  IC2.pinMode(IN4,OUTPUT); 
+  IC2.begin();
+
+  IC2.digitalWrite(BUZ, LOW);
+
+  //Set PWM
+  ledcSetup(speed1_Channel, freq, resolution);
+  ledcSetup(speed2_Channel, freq, resolution);
+  ledcAttachPin(ENA, speed1_Channel);
+  ledcAttachPin(ENB, speed2_Channel);
+
+    val = analogRead(VR);
+    val = map(val, 0, ADC_Max, 0, 255); 
+      
+  oled_print("PRESS PB1 To Continue",0,LINE1);
+  sprintf(line2_buf,"speed:%d",val);
+  oled_print(line2_buf,0,LINE2);
+  while(digitalRead(PB1) == HIGH);
+  beep();
+  oled_clear();
+  onceFlag = false;
+  previous_time = millis(); 
+}
+
+void loop()
+{
+  //Handle Pixy CAM
+  //======================================
+  while((millis() - previous_time) < 5000){
+    scan();
+    area = width * height; //calculate the object area
+    maxArea = area + 1500;
+    minArea = area - 1500;
+  }
+  if(onceFlag == false){
+    onceFlag = true;
+    beep();
+    sprintf(line1_buf,"maxArea:%d",maxArea); 
+    sprintf(line2_buf,"minArea:%d",minArea); 
+    oled_clear();
+    oled_print(line1_buf,0,LINE1);
+    oled_print(line2_buf,0,LINE2);
+    delay(3000);
+  }
+
+//YOUR APPLICATION HERE
+//========================================================================
+   if(scan())
+    {
+          newarea = width * height; //calculate the object area
+            if (x < Xmin)//turn left if x position < max x position
+            {    
+             left();
+            }
+            //Your Program CONTINUE HERE!!
+
+      
+          sprintf(line1_buf,"NewArea:%d",newarea); 
+          sprintf(line2_buf,"x:%d y:%d",x,y); 
+    }
+    else
+    {
+      Stop();  
+    }
+
+//========================================================================
+ 
+  //Handle Blinking LEDs and buzzer
+  //======================================
+  if(millis()>ledTick){
+    ledTick = millis()+500;
+    state ^=1;  //toggle it
+    IC2.digitalWrite(LED8,state);
+    IC2.digitalWrite(LED7,state);
+    IC2.digitalWrite(LED6,state);    
+  }
+  //=======================================
+
+ //Handle Oled Refresh Display
+ //========================================
+ if(millis()> oledTick){
+  oledTick = millis()+1000;
+  oled_clear();
+  oled_print(line1_buf,0,LINE1);
+  oled_print(line2_buf,0,LINE2);
+  oled_print(line3_buf,0,LINE3);
+  oled_print(line4_buf,0,LINE4);
+ }
+ //=======================================
+ 
+}//End loop
+
+//========================================
+
+//User Define Function
+//========================================
+void oled_print(const char* str, byte col,byte row){
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(col,row);
+  display.println(str);
+  display.display();
+}
+
+void oled_clear(){
+  display.clearDisplay();
+}
+
+void beep(){
+  IC2.digitalWrite(BUZ, HIGH);  
+  delay(200);
+  IC2.digitalWrite(BUZ, LOW);
+}
+
+uint16_t scan()
+{
+  uint16_t blocks;
+  static uint16_t not_detect_count;
+  static uint16_t good_result;
+   
+  blocks = pixy.getBlocks();
+  if(blocks){
+  good_result = 1;
+  not_detect_count = 0;
+  signature=pixy.blocks[0].signature;
+  x=pixy.blocks[0].x;
+  y=pixy.blocks[0].y;
+  width = pixy.blocks[0].width;
+  height=pixy.blocks[0].height;  
+  }
+  else{
+    if(++not_detect_count > 500){
+      not_detect_count = 0;
+      good_result = 0;
+    }
+  }
+  return good_result;
+}
+
+//Basic Movement Robot
+//=========================================
+void forward(){
+      IC2.digitalWrite(IN1, LOW);
+      IC2.digitalWrite(IN2, HIGH);
+      IC2.digitalWrite(IN3,LOW);
+      IC2.digitalWrite(IN4,HIGH);
+      dutyCycle = val;
+      ledcWrite(speed1_Channel, dutyCycle);
+      ledcWrite(speed2_Channel, dutyCycle);   
+}
+
+void backward(){
+      IC2.digitalWrite(IN1, HIGH);
+      IC2.digitalWrite(IN2, LOW);
+      IC2.digitalWrite(IN3,HIGH);
+      IC2.digitalWrite(IN4,LOW);
+      dutyCycle = val;
+      ledcWrite(speed1_Channel, dutyCycle);
+      ledcWrite(speed2_Channel, dutyCycle);   
+}
+
+void left(){
+      IC2.digitalWrite(IN1, HIGH);
+      IC2.digitalWrite(IN2, LOW);
+      IC2.digitalWrite(IN3,LOW);
+      IC2.digitalWrite(IN4,HIGH);
+      dutyCycle = 120;
+      ledcWrite(speed1_Channel, dutyCycle);
+      ledcWrite(speed2_Channel, dutyCycle);  
+}
+
+void right(){
+      IC2.digitalWrite(IN1, LOW);
+      IC2.digitalWrite(IN2, HIGH);
+      IC2.digitalWrite(IN3,HIGH);
+      IC2.digitalWrite(IN4,LOW);
+      dutyCycle = 120;
+      ledcWrite(speed1_Channel, dutyCycle);
+      ledcWrite(speed2_Channel, dutyCycle);   
+}
+
+void Stop(){
+      IC2.digitalWrite(IN1, LOW);
+      IC2.digitalWrite(IN2, LOW);
+      IC2.digitalWrite(IN3,LOW);
+      IC2.digitalWrite(IN4,LOW);
+      dutyCycle = 0;
+      ledcWrite(speed1_Channel, dutyCycle);
+      ledcWrite(speed2_Channel, dutyCycle);   
+}
