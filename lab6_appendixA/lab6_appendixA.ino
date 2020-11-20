@@ -123,7 +123,12 @@ void setup()
   ledcSetup(speed2_Channel, freq, resolution);
   ledcAttachPin(ENA, speed1_Channel);
   ledcAttachPin(ENB, speed2_Channel);
-
+  
+  oled_print("PRESS PB1 To Continue",0,LINE1);
+  oled_print(line2_buf,0,LINE2);
+  while(digitalRead(PB1) == HIGH);
+  beep();
+  oled_clear();
   previous_time = millis(); 
 }
 
@@ -203,4 +208,10 @@ void oled_print(const char* str, byte col,byte row){
 
 void oled_clear(){
   display.clearDisplay();
+}
+
+void beep(){
+  IC2.digitalWrite(BUZ, HIGH);  
+  delay(200);
+  IC2.digitalWrite(BUZ, LOW);
 }
