@@ -7,7 +7,7 @@
 #include <Adafruit_SSD1306.h> //By Adafruit Version 2.4.0 Oled 128x32
 #include <PixySPI_SS_eps32.h> //https://drive.google.com/file/d/1z82DBqcuNWMVMzOchMi640mwvrnkQEqq/view?usp=sharing 
 #include <Ultrasonic.h>       //Ultrasonic by Erick Simões version 3.0.0
-#include <ESP32Servo.h>       //By Kevin Harrington,John K. Bennett version 0.9.0
+#include <Servo.h>       //ServoESP32 by Jaroslav Páral version 1.0.3
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
@@ -70,10 +70,8 @@ const byte LINE4 = 24;
 const int ADC_Max = 4096;
 
 //Setting RC Servo Motor
-const int minDutyCycle = 500;
-const int maxDutyCycle = 2400;
-const int minDegree = 0;
-const int maxDegree = 180;
+const byte minDegree=0;
+const byte maxDegree=180;
 
 
 //Mapping Object
@@ -116,9 +114,14 @@ void setup()
   }
   display.clearDisplay();
 
+  //Initialize Pixy MCUcam5
   pixy.init();
 
+  //Initialize Ultrasonic HC-SR04 module
   ultrasonic.setTimeout(40000UL);
+
+  //Initialize Servo Library
+  myservo.attach(SERVO);
   
   pinMode(PB1, INPUT);
   pinMode(PB2, INPUT);
@@ -152,14 +155,6 @@ void setup()
   ledcSetup(speed2_Channel, freq, resolution);
   ledcAttachPin(ENA, speed1_Channel);
   ledcAttachPin(ENB, speed2_Channel);
-
-  // Allow allocation of all timers
-  ESP32PWM::allocateTimer(0);
-  ESP32PWM::allocateTimer(1);
-  ESP32PWM::allocateTimer(2);
-  ESP32PWM::allocateTimer(3);
-  myservo.setPeriodHertz(50);// Standard 50hz servo
-  myservo.attach(SERVO, minDutyCycle, maxDutyCycle); 
   
 }
 
@@ -199,11 +194,11 @@ void loop()
   //Handle Servo
   //=============================================
   if(millis() > servoTick){
-    uint16_t val;
+    uint16_t Dout;
     servoTick = millis()+200;
-    val = analogRead(VR);
-    val = map(val, 0, ADC_Max, minDegree, maxDegree);
-    myservo.write(val); 
+    Dout = analogRead(VR);
+    Dout = map(Dout, 0, ADC_Max, minDegree, maxDegree);
+    myservo.write(Dout); 
   }
 
   //=============================================
