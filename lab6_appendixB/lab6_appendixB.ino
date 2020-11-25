@@ -282,7 +282,7 @@ void left(){
       IC2.digitalWrite(IN2, LOW);
       IC2.digitalWrite(IN3,LOW);
       IC2.digitalWrite(IN4,HIGH);
-      dutyCycle = 120;
+      dutyCycle = val+50;
       ledcWrite(speed1_Channel, dutyCycle);
       ledcWrite(speed2_Channel, dutyCycle);  
 }
@@ -292,7 +292,7 @@ void right(){
       IC2.digitalWrite(IN2, HIGH);
       IC2.digitalWrite(IN3,HIGH);
       IC2.digitalWrite(IN4,LOW);
-      dutyCycle = 120;
+      dutyCycle = val+50;
       ledcWrite(speed1_Channel, dutyCycle);
       ledcWrite(speed2_Channel, dutyCycle);   
 }
