@@ -7,7 +7,7 @@
 #include <Adafruit_SSD1306.h> //By Adafruit Version 2.4.0 Oled 128x32
 #include <PixySPI_SS_eps32.h> //https://drive.google.com/file/d/1z82DBqcuNWMVMzOchMi640mwvrnkQEqq/view?usp=sharing 
 #include <Ultrasonic.h>       //Ultrasonic by Erick Simões version 3.0.0
-#include <ESP32Servo.h>       //By Kevin Harrington,John K. Bennett version 0.9.0
+#include <Servo.h>       //ServoESP32 by Jaroslav Páral version 1.0.3
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
@@ -58,7 +58,7 @@ unsigned int width = 0;         //object's width
 unsigned int height = 0;        //object's height
 unsigned int area = 0;
 unsigned int newarea = 0;
-int Xmin = 70;                  //min x position
+int Xmin = 130;                  //min x position
 int Xmax = 200;                 //max x position
 int maxArea = 0;
 int minArea = 0;
