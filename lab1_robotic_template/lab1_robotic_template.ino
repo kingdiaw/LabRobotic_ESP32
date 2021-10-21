@@ -97,8 +97,8 @@ void setup()
   
   dutyCycle = map(analogRead(VR),0,4096,0,255);
   sprintf(line2_buf,"duty cycle:%d",dutyCycle);
-  oled_print("PRESS PB1 To Continue",0,LINE1);
-  oled_print(line2_buf,0,LINE2);
+  oled_print(line1_buf,0,LINE1);
+  oled_print("PRESS PB1 To Continue",0,LINE2);
   
   while(digitalRead(PB1) == HIGH);
   beep();
@@ -112,7 +112,7 @@ void loop()
   //======================================
     IC2.digitalWrite(IN1,LOW);
     IC2.digitalWrite(IN2,HIGH);
-    ledcWrite(speed_left,255);
+    ledcWrite(speed_left,dutyCycle);
 
   //======================================
 
