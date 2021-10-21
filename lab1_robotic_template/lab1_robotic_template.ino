@@ -95,7 +95,11 @@ void setup()
   ledcAttachPin(ENA, speed_left);
   ledcAttachPin(ENB, speed_right);
   
+  dutyCycle = map(analogRead(VR),0,4096,0,255);
+  sprintf(line2_buf,"duty cycle:%d",dutyCycle);
   oled_print("PRESS PB1 To Continue",0,LINE1);
+  oled_print(line2_buf,0,LINE2);
+  
   while(digitalRead(PB1) == HIGH);
   beep();
   oled_clear();
