@@ -96,7 +96,7 @@ void setup()
   ledcAttachPin(ENB, speed_right);
   
   dutyCycle = map(analogRead(VR),0,4096,0,255);
-  sprintf(line2_buf,"duty cycle:%d",dutyCycle);
+  sprintf(line1_buf,"duty cycle:%d",dutyCycle);
   oled_print(line1_buf,0,LINE1);
   oled_print("PRESS PB1 To Continue",0,LINE2);
   
