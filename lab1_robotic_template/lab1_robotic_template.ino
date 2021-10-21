@@ -106,7 +106,9 @@ void loop()
 {
   //WRITE YOUR CODE HERE
   //======================================
-
+    IC2.digitalWrite(IN1,LOW);
+    IC2.digitalWrite(IN2,HIGH);
+    ledcWrite(speed_left,255);
 
   //======================================
 
