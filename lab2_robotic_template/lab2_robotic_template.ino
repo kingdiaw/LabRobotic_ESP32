@@ -118,7 +118,14 @@ void loop()
   distance = ultrasonic.read();
   sprintf(line1_buf,"Distance(CM):%d",distance);    
   }
-
+  
+  //Task
+  if(distance > 10){
+  //Do something  
+  }
+  else{
+  //Do something else      
+  }
   //======================================
 
   //Handle Blinking LEDs and buzzer
