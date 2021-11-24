@@ -157,7 +157,7 @@ void loop()
   int rtn;
   if (millis() > senTick) {
     senTick = millis() + 10;
-    sprintf(line3_buf,"%d",robot_turn_right());
+    linefollower(1);
   }
   //======================================
 
@@ -303,15 +303,15 @@ byte linefollower(byte target_number_junc){
     break;
   }
   
-  //sprintf(line3_buf,"BIAS:%d",bias);
-  Input = bias;
-  myPID.Compute();
-  if(bias < 0 ){
-  robot(1,1,base_speed_left - Output,base_speed_right + Output);
-  }
-  else if( bias > 0){
-    robot(1,1,base_speed_left + Output,base_speed_right - Output);
-  }
+  sprintf(line3_buf,"BIAS:%d",bias);
+  //Input = bias;
+  //myPID.Compute();
+  //if(bias < 0 ){
+  //robot(1,1,base_speed_left - Output,base_speed_right + Output);
+  //}
+  //else if( bias > 0){
+  //  robot(1,1,base_speed_left + Output,base_speed_right - Output);
+  //}
   
   //sprintf(line4_buf,"%.2f",Output);
   //Serial.println(Output);
