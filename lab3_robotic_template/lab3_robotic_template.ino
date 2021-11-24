@@ -32,7 +32,7 @@
 
 //Declare FSM
 //===============================================
-enum {F1, TURN_LEFT, F2, TURN_RIGHT, F3, STOP} State = F1;
+enum {F1, STOP} State = F1;
 
 //PID Parameter
 //===============================================
@@ -154,7 +154,6 @@ void loop()
 {
   //WRITE YOUR CODE HERE
   //======================================
-  int rtn;
   if (millis() > senTick) {
     senTick = millis() + 10;
     linefollower(1);
