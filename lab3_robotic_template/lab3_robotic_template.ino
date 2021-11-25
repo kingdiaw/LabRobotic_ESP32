@@ -315,6 +315,9 @@ byte linefollower(byte target_number_junc){
   //sprintf(line4_buf,"%.2f",Output);
   //Serial.println(Output);
   //oled_print(line4_buf, 0, LINE4);
+  sprintf(line4_buf,"%d",number_junc);
+  oled_print("      ",0, LINE4);
+  oled_print(line4_buf, 0, LINE4);
   return 1;
 }
 void robot(unsigned char mLeft, unsigned char mRight, int sLeft, int sRight) {
