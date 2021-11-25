@@ -158,8 +158,9 @@ void loop()
   case F1:  
     if (millis() > senTick) {
       senTick = millis() + 10;
-      if(linefollower(4)==0)
+      if(linefollower(2)==0){
       State = STOP1;
+      }
     }
   break;
   case STOP1:
