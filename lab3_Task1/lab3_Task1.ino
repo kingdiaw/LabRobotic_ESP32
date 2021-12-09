@@ -320,6 +320,8 @@ byte linefollower(byte target_number_junc){
   
   sprintf(line3_buf,"BIAS:%d",bias);
   Input = bias;
+  if(bias>3)myPID.SetControllerDirection(REVERSE);
+  else if(bias <3)myPID.SetControllerDirection(DIRECT);
   myPID.Compute();
   int sL,sR;
   sL=sR=dutyCycle;
