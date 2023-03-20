@@ -32,7 +32,7 @@
 
 //Declare FSM
 //===============================================
-enum {F1, STOP} State = F1;
+enum {F1, STOP1, TURN_LEFT, STOP2, F2, STOP3} State = F1;
 
 //PID Parameter
 //===============================================
@@ -40,7 +40,7 @@ enum {F1, STOP} State = F1;
 double Setpoint, Input, Output;
 
 //Specify the links and initial tuning parameters
-double Kp=2, Ki=5, Kd=1;
+double Kp = 20, Ki = 5, Kd = 1;
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 
 //Setting Parameter for Peripheral
@@ -61,9 +61,6 @@ const byte LINE2 = 8;
 const byte LINE3 = 16;
 const byte LINE4 = 24;
 
-//Setting Motor
-const byte base_speed_left=100;
-const byte base_speed_right = 115;
 
 //Mapping Object
 //===============================================
@@ -92,6 +89,7 @@ unsigned long previous_time;
 byte s[5];
 byte sensorArray, sensorArrayOld;
 int bias;
+int sL, sR;
 
 
 void setup()
@@ -145,19 +143,31 @@ void setup()
   beep();
   oled_clear();
   previous_time = millis();
-  Setpoint = 0;
-  myPID.SetOutputLimits(0,100);
+  Setpoint = 3;
+  myPID.SetOutputLimits(0, 100);
   myPID.SetMode(AUTOMATIC);
+  sL = sR = dutyCycle;
 }
 
 void loop()
 {
   //WRITE YOUR CODE HERE
   //======================================
-  if (millis() > senTick) {
-    senTick = millis() + 10;
-    linefollower(1);
+  switch (State) {
+    case F1:
+      if (millis() > senTick) {
+        senTick = millis() + 10;
+        if (linefollower(4) == 0) {
+          State = STOP1;
+        }
+      }
+      break;
+    case STOP1:
+      robot_stop();
+      beep();
+      break;
   }
+
   //======================================
 
   //Handle Blinking LEDs and buzzer
@@ -208,115 +218,118 @@ void beep() {
 }
 
 //Robot movement control function
-void robot_forward() {
-  robot(1,1,base_speed_left,base_speed_right);
-}
-
-void robot_reverse() {
-
-}
 
 void robot_stop() {
-  robot(1,1,0,0);
+  robot(1, 1, 0, 0);
 }
 
 byte robot_turn_left() {
-  if(!IC1.digitalRead(S1)){ //wait until 0xxxx
+  if (!IC1.digitalRead(S1)) { //wait until 0xxxx
     robot_stop();
-    return 0; 
+    return 0;
   }
-  robot (0,1,dutyCycle,dutyCycle);
+  robot (0, 1, 180, 180);
   return 1;
 }
 
-byte robot_turn_right() {  
-  if(!IC1.digitalRead(S5)){ //wait until xxxx0
+byte robot_turn_right() {
+  if (!IC1.digitalRead(S5)) { //wait until xxxx0
     robot_stop();
-    return 0; 
+    return 0;
   }
-  robot (1,0,dutyCycle,dutyCycle);
-  return 1;    
+  robot (1, 0, 180, 180);
+  return 1;
 }
 
-byte linefollower(byte target_number_junc){
+byte linefollower(byte target_number_junc) {
   static unsigned char number_junc;
-  static int bias,biasOld;
+  static int bias, biasOld;
   sensorArray = 0;
-  sensorArray =(IC1.digitalRead(S1)<<4)|(IC1.digitalRead(S2)<<3)|(IC1.digitalRead(S3)<<2)|(IC1.digitalRead(S4)<<1)|(IC1.digitalRead(S5));
-  sprintf(line2_buf,"SEN=%d",sensorArray); 
-  switch(sensorArray){
+  sensorArray = (IC1.digitalRead(S1) << 4) | (IC1.digitalRead(S2) << 3) | (IC1.digitalRead(S3) << 2) | (IC1.digitalRead(S4) << 1) | (IC1.digitalRead(S5));
+  sprintf(line2_buf, "SEN=%d", sensorArray);
+  switch (sensorArray) {
     case 0b00011011:
-        if(sensorArrayOld != sensorArray){
-          bias = 0;
-          biasOld = bias;
-          sensorArrayOld = sensorArray;
-        }        
-    break;
+      if (sensorArrayOld != sensorArray) {
+        //bias = 0;
+        bias = 3;
+        biasOld = bias;
+        sensorArrayOld = sensorArray;
+      }
+      break;
     case 0b00010111:
-        if(sensorArrayOld != sensorArray){
-          bias = -1;
-          biasOld = bias;
-          sensorArrayOld = sensorArray;
-        } 
-    break;
+      if (sensorArrayOld != sensorArray) {
+        //bias = -1;
+        bias = 2;
+        biasOld = bias;
+        sensorArrayOld = sensorArray;
+      }
+      break;
     case 0b00001111:
-        if(sensorArrayOld != sensorArray){
-          bias = -2;
-          biasOld = bias;
-          sensorArrayOld = sensorArray;
-        } 
-    break;
+      if (sensorArrayOld != sensorArray) {
+        //bias = -2;
+        bias = 1;
+        biasOld = bias;
+        sensorArrayOld = sensorArray;
+      }
+      break;
     case 0b00011101:
-        if(sensorArrayOld != sensorArray){
-          bias = 1;
-          biasOld = bias;
-          sensorArrayOld = sensorArray;
-        } 
-    break;
+      if (sensorArrayOld != sensorArray) {
+        //bias = 1;
+        bias = 4;
+        biasOld = bias;
+        sensorArrayOld = sensorArray;
+      }
+      break;
 
     case 0b00011110:
-        if(sensorArrayOld != sensorArray){
-          bias = 2;
-          biasOld = bias;
-          sensorArrayOld = sensorArray;
-        } 
-    break;
+      if (sensorArrayOld != sensorArray) {
+        //bias = 2;
+        bias = 5;
+        biasOld = bias;
+        sensorArrayOld = sensorArray;
+      }
+      break;
     case 0b00011111:
-        if(sensorArrayOld != sensorArray){
-          bias = biasOld;
-          sensorArrayOld = sensorArray;
-        } 
-    break;
+      if (sensorArrayOld != sensorArray) {
+        bias = biasOld;
+        sensorArrayOld = sensorArray;
+      }
+      break;
     case 0b00000000:
-        if(sensorArrayOld != sensorArray){ 
-          sensorArrayOld = sensorArray;
-          if(++number_junc >= target_number_junc){
-            number_junc = 0;
-            robot_stop();
-            return 0;
-          }
+      if (sensorArrayOld != sensorArray) {
+        sensorArrayOld = sensorArray;
+        if (++number_junc >= target_number_junc) {
+          number_junc = 0;
+          robot_stop();
+          return 0;
         }
-    break;
+      }
+      break;
     default:
       bias = biasOld;
-    break;
+      break;
   }
-  
-  sprintf(line3_buf,"BIAS:%d",bias);
-  //Input = bias;
-  //myPID.Compute();
-  //if(bias < 0 ){
-  //robot(1,1,base_speed_left - Output,base_speed_right + Output);
-  //}
-  //else if( bias > 0){
-  //  robot(1,1,base_speed_left + Output,base_speed_right - Output);
-  //}
-  
-  //sprintf(line4_buf,"%.2f",Output);
-  //Serial.println(Output);
-  //oled_print(line4_buf, 0, LINE4);
-  sprintf(line4_buf,"%d",number_junc);
-  oled_print("      ",0, LINE4);
+
+  sprintf(line3_buf, "BIAS:%d", bias);
+  Input = bias;
+
+  if (bias == 3) {
+    sL = sR = dutyCycle;
+  }
+  else if (bias < 3 ) { //
+    sL = 0;
+    if (sL < 0)sL = 0;
+    sR = dutyCycle;
+    if (sR > 255) sR = 255;
+  }
+  else if ( bias > 3) {
+    sL = dutyCycle;
+    if (sL > 0)sL = 255;
+    sR = 0;
+    if (sR < 0) sR = 0;
+  }
+  robot(1, 1, sL, sR);    
+  sprintf(line4_buf, "sL=%d sR=%d", sL, sR);
   oled_print(line4_buf, 0, LINE4);
   return 1;
 }
