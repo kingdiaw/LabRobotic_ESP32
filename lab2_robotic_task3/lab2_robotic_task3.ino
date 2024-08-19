@@ -97,10 +97,8 @@ void setup()
   IC2.digitalWrite(BUZ, LOW);
 
   //Set PWM
-  ledcSetup(speed_left, freq, resolution);
-  ledcSetup(speed_right, freq, resolution);
-  ledcAttachPin(ENA, speed_left);
-  ledcAttachPin(ENB, speed_right);
+  ledcAttachChannel(ENA, freq, resolution, speed_left);
+  ledcAttachChannel(ENB, freq, resolution, speed_right);
 
   dutyCycle = map(analogRead(VR),0,4096,0,255);
   sprintf(line1_buf,"duty cycle:%d",dutyCycle);
