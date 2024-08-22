@@ -3,7 +3,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h> //By Adafruit Version 2.4.0 Oled 128x32
-#include <Ultrasonic.h>       //By Erick Simoes Version 3.0.0
+
 //Mapping I/O
 //================================================
 #define LED8  P7
@@ -22,18 +22,11 @@
 #define TRIG  12
 #define ECHO  35
 //================================================
-
 //Declare FSM
 enum {F1,TURN_LEFT,F2,TURN_RIGHT,F3,STOP}State=F1;
 
-
 //Setting Parameter for Peripheral
 //================================================
-//Setting PWM Properties
-const int freq = 1000; 
-const byte speed_left = 0; 
-const byte speed_right = 1;
-const byte resolution = 8; 
 byte dutyCycle=0;
 
 //Setting OLED Pixels
@@ -45,12 +38,14 @@ const byte LINE2 = 8;
 const byte LINE3 = 16;
 const byte LINE4 = 24;
 
+//Setting HCSR-4
+const int Time_out = 3000;
+
 //Mapping Object
 //===============================================
 // Set i2c address
 PCF8574 IC2 (0x20);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-Ultrasonic ultrasonic (TRIG,ECHO);
 
 //================================================
 //Global Variable
@@ -82,6 +77,8 @@ void setup()
   pinMode(ENA, OUTPUT);
   pinMode(ENB, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(TRIG, OUTPUT);
+  pinMode(ECHO, INPUT);
   
   // Set IC2 pinMode
   IC2.pinMode(LED8, OUTPUT);
@@ -96,14 +93,10 @@ void setup()
 
   IC2.digitalWrite(BUZ, LOW);
 
-  //Set PWM
-  ledcAttachChannel(ENA, freq, resolution, speed_left);
-  ledcAttachChannel(ENB, freq, resolution, speed_right);
-
   dutyCycle = map(analogRead(VR),0,4096,0,255);
   sprintf(line1_buf,"duty cycle:%d",dutyCycle);
-    oled_print(line1_buf,0,LINE1);
-    oled_print("PRESS PB1 To Continue",0,LINE2);
+  oled_print(line1_buf,0,LINE1);
+  oled_print("PRESS PB1 To Continue",0,LINE2);
 
   while(digitalRead(PB1) == HIGH);
   beep();
@@ -117,10 +110,18 @@ void loop()
   //======================================
   if(millis()>sensorTick){
   sensorTick = millis()+50;
-  distance = ultrasonic.read();
+  digitalWrite(TRIG, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG, LOW);
+  long duration = pulseIn(ECHO,HIGH,Time_out);
+  if ( duration == 0 ) {
+	duration = Time_out; }
+  distance = duration * 0.034 / 2;  // Calculate the distance in centimeters
   sprintf(line1_buf,"Distance(CM):%d",distance);    
   }
-
+  
   //Task 3-Using FSM
   sprintf(line2_buf,"Current State:%d",State);
   switch(State){
@@ -163,7 +164,7 @@ void loop()
           robot_stop();
       break;  
   }
-  
+
   //======================================
 
   //Handle Blinking LEDs and buzzer
@@ -233,8 +234,3 @@ void robot_turn_left(){
 void robot_turn_right(){
   
 }
-
-
-
-
-  
