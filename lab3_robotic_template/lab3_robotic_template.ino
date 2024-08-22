@@ -3,8 +3,6 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h> //By Adafruit Version 2.4.0 Oled 128x32
-#include <Ultrasonic.h>       //By Erick Simoes Version 3.0.0
-#include <PID_v1.h>           //By Brett Beauregard
 
 //Mapping I/O
 //================================================
@@ -34,24 +32,8 @@
 //===============================================
 enum {F1, STOP1, TURN_LEFT, STOP2, F2, STOP3} State = F1;
 
-//PID Parameter
-//===============================================
-//Define Variables we'll be connecting to
-double Setpoint, Input, Output;
-
-//Specify the links and initial tuning parameters
-double Kp = 20, Ki = 5, Kd = 1;
-PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
-
 //Setting Parameter for Peripheral
 //================================================
-//Setting PWM Properties
-const int freq = 1000;
-const byte speed_left = 0;
-const byte speed_right = 1;
-const byte resolution = 8;
-byte dutyCycle = 0;
-
 //Setting OLED Pixels
 const byte SCREEN_WIDTH = 128;
 const byte SCREEN_HEIGHT = 32;
@@ -73,6 +55,7 @@ Ultrasonic ultrasonic (TRIG, ECHO);
 
 //================================================
 //Global Variable
+byte dutyCycle = 0;
 bool sensorDetected = false;
 bool PB1_old = true;
 bool PB2_old = true;
@@ -91,7 +74,6 @@ byte sensorArray, sensorArrayOld;
 int bias;
 int sL, sR;
 
-
 void setup()
 {
   Serial.begin(115200);
@@ -106,6 +88,8 @@ void setup()
   pinMode(ENA, OUTPUT);
   pinMode(ENB, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(TRIG, OUTPUT);
+  pinMode(ECHO, INPUT);
 
   //Set IC1 pinMode
   IC1.pinMode(S1, INPUT_PULLUP);
@@ -128,10 +112,6 @@ void setup()
 
   IC2.digitalWrite(BUZ, LOW);
 
-  //Set PWM
-  ledcAttachChannel(ENA, freq, resolution, speed_left);
-  ledcAttachChannel(ENB, freq, resolution, speed_right);
-
   dutyCycle = map(analogRead(VR), 0, 4096, 0, 255);
   sprintf(line1_buf, "duty cycle:%d", dutyCycle);
   oled_print(line1_buf, 0, LINE1);
@@ -141,9 +121,6 @@ void setup()
   beep();
   oled_clear();
   previous_time = millis();
-  Setpoint = 3;
-  myPID.SetOutputLimits(0, 100);
-  myPID.SetMode(AUTOMATIC);
   sL = sR = dutyCycle;
 }
 
@@ -348,6 +325,6 @@ void robot(unsigned char mLeft, unsigned char mRight, int sLeft, int sRight) {
     IC2.digitalWrite(IN3, HIGH);
     IC2.digitalWrite(IN4, LOW);
   }
-  ledcWrite(speed_left, sLeft);
-  ledcWrite(speed_right, sRight);
+  analogWrite(ENA, sLeft);
+  analogWrite(ENB, sRight);
 }
