@@ -25,13 +25,6 @@
 
 //Setting Parameter for Peripheral
 //================================================
-//Setting PWM Properties
-const int freq = 1000; 
-const byte speed_left = 0; 
-const byte speed_right = 1;
-const byte resolution = 8; 
-byte dutyCycle=0;
-
 //Setting OLED Pixels
 const byte SCREEN_WIDTH = 128;
 const byte SCREEN_HEIGHT = 32;
@@ -49,6 +42,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 //================================================
 //Global Variable
+byte dutyCycle=0;
 bool PB1_old = true;
 bool PB2_old = true;
 bool PB1_new, PB2_new;
@@ -75,6 +69,8 @@ void setup()
   pinMode(ENA, OUTPUT);
   pinMode(ENB, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(TRIG, OUTPUT);
+  pinMode(ECHO, INPUT);
   
   // Set IC2 pinMode
   IC2.pinMode(LED8, OUTPUT);
@@ -88,10 +84,6 @@ void setup()
   IC2.begin();
 
   IC2.digitalWrite(BUZ, LOW);
-
-  //Set PWM
-  ledcAttachChannel(ENA, freq, resolution, speed_left);
-  ledcAttachChannel(ENB, freq, resolution, speed_right);
   
   dutyCycle = map(analogRead(VR),0,4096,0,255);
   sprintf(line1_buf,"duty cycle:%d",dutyCycle);
@@ -110,7 +102,7 @@ void loop()
   //======================================
     IC2.digitalWrite(IN1,LOW);
     IC2.digitalWrite(IN2,HIGH);
-    ledcWrite(speed_left,dutyCycle);
+    analogWrite(ENA, dutyCycle);
 
   //======================================
 
