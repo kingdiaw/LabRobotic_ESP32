@@ -27,8 +27,6 @@ enum {F1,TURN_LEFT,F2,TURN_RIGHT,F3,STOP}State=F1;
 
 //Setting Parameter for Peripheral
 //================================================
-byte dutyCycle=0;
-
 //Setting OLED Pixels
 const byte SCREEN_WIDTH = 128;
 const byte SCREEN_HEIGHT = 32;
@@ -49,6 +47,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 //================================================
 //Global Variable
+byte dutyCycle=0;
 bool PB1_old = true;
 bool PB2_old = true;
 bool PB1_new, PB2_new;
