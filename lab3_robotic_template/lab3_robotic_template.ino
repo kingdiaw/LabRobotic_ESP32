@@ -317,12 +317,12 @@ void robot(unsigned char mLeft, unsigned char mRight, int sLeft, int sRight) {
     IC2.digitalWrite(IN2, LOW);
   }
   if (mRight > 0) {
-    IC2.digitalWrite(IN3, LOW);
-    IC2.digitalWrite(IN4, HIGH);
-  }
-  else {
     IC2.digitalWrite(IN3, HIGH);
     IC2.digitalWrite(IN4, LOW);
+  }
+  else {
+    IC2.digitalWrite(IN3, LOW);
+    IC2.digitalWrite(IN4, HIGH);
   }
   analogWrite(ENA, sLeft);
   analogWrite(ENB, sRight);
