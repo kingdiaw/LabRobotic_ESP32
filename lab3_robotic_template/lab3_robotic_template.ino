@@ -51,7 +51,6 @@ const byte LINE4 = 24;
 PCF8574 IC1 (0x21);
 PCF8574 IC2 (0x20);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-Ultrasonic ultrasonic (TRIG, ECHO);
 
 //================================================
 //Global Variable
@@ -73,6 +72,7 @@ byte s[5];
 byte sensorArray, sensorArrayOld;
 int bias;
 int sL, sR;
+int input;
 
 void setup()
 {
@@ -286,8 +286,7 @@ byte linefollower(byte target_number_junc) {
   }
 
   sprintf(line3_buf, "BIAS:%d", bias);
-  Input = bias;
-
+  
   if (bias == 3) {
     sL = sR = dutyCycle;
   }
