@@ -3,8 +3,8 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h> //By Adafruit Version 2.4.0 Oled 128x32
-#include <Ultrasonic.h>       //By Erick Simoes Version 3.0.0
-#include <PID_v1.h>           //By Brett Beauregard
+//#include <Ultrasonic.h>       //By Erick Simoes Version 3.0.0
+//#include <PID_v1.h>           //By Brett Beauregard
 #include "BluetoothSerial.h"
 
 //Mapping I/O
@@ -42,19 +42,15 @@ enum {F1, STOP} State = F1;
 //PID Parameter
 //===============================================
 //Define Variables we'll be connecting to
-double Setpoint, Input, Output;
+//double Setpoint, Input, Output;
 
 //Specify the links and initial tuning parameters
-double Kp=2, Ki=5, Kd=1;
-PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
+//double Kp=2, Ki=5, Kd=1;
+//PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 
 //Setting Parameter for Peripheral
 //================================================
 //Setting PWM Properties
-const int freq = 1000;
-const byte speed_left = 0;
-const byte speed_right = 1;
-const byte resolution = 8;
 byte dutyCycle = 0;
 
 //Setting OLED Pixels
@@ -76,7 +72,7 @@ const byte base_speed_right = 115;
 PCF8574 IC1 (0x21);
 PCF8574 IC2 (0x20);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-Ultrasonic ultrasonic (TRIG, ECHO);
+//Ultrasonic ultrasonic (TRIG, ECHO);
 BluetoothSerial SerialBT;
 
 //================================================
@@ -138,11 +134,11 @@ void setup()
   IC2.digitalWrite(BUZ, LOW);
 
   //Initialize Ultrasonic HC-SR04 module
-  ultrasonic.setTimeout(40000UL);
+  //ultrasonic.setTimeout(40000UL);
   
   //Set PWM
-  ledcAttachChannel(ENA, freq, resolution, speed_left);
-  ledcAttachChannel(ENB, freq, resolution, speed_right);
+ // ledcAttachChannel(ENA, freq, resolution, speed_left);
+ // ledcAttachChannel(ENB, freq, resolution, speed_right);
 
   dutyCycle = map(analogRead(VR), 0, 4096, 0, 255);
   sprintf(line1_buf, "duty cycle:%d", dutyCycle);
@@ -153,9 +149,9 @@ void setup()
   beep();
   oled_clear();
   previous_time = millis();
-  Setpoint = 0;
-  myPID.SetOutputLimits(0,100);
-  myPID.SetMode(AUTOMATIC);
+ // Setpoint = 0;
+ // myPID.SetOutputLimits(0,100);
+ // myPID.SetMode(AUTOMATIC);
 }
 
 void loop()
