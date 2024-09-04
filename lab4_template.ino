@@ -133,13 +133,6 @@ void setup()
 
   IC2.digitalWrite(BUZ, LOW);
 
-  //Initialize Ultrasonic HC-SR04 module
-  //ultrasonic.setTimeout(40000UL);
-  
-  //Set PWM
- // ledcAttachChannel(ENA, freq, resolution, speed_left);
- // ledcAttachChannel(ENB, freq, resolution, speed_right);
-
   dutyCycle = map(analogRead(VR), 0, 4096, 0, 255);
   sprintf(line1_buf, "duty cycle:%d", dutyCycle);
   oled_print(line1_buf, 0, LINE1);
@@ -149,9 +142,6 @@ void setup()
   beep();
   oled_clear();
   previous_time = millis();
- // Setpoint = 0;
- // myPID.SetOutputLimits(0,100);
- // myPID.SetMode(AUTOMATIC);
 }
 
 void loop()
@@ -257,88 +247,7 @@ byte robot_turn_right() {
   return 1;    
 }
 
-byte linefollower(byte target_number_junc){
-  static unsigned char number_junc;
-  static int bias,biasOld;
-  sensorArray = 0;
-  sensorArray =(IC1.digitalRead(S1)<<4)|(IC1.digitalRead(S2)<<3)|(IC1.digitalRead(S3)<<2)|(IC1.digitalRead(S4)<<1)|(IC1.digitalRead(S5));
-  sprintf(line2_buf,"SEN=%d",sensorArray); 
-  switch(sensorArray){
-    case 0b00011011:
-        if(sensorArrayOld != sensorArray){
-          bias = 0;
-          biasOld = bias;
-          sensorArrayOld = sensorArray;
-        }        
-    break;
-    case 0b00010111:
-        if(sensorArrayOld != sensorArray){
-          bias = -1;
-          biasOld = bias;
-          sensorArrayOld = sensorArray;
-        } 
-    break;
-    case 0b00001111:
-        if(sensorArrayOld != sensorArray){
-          bias = -2;
-          biasOld = bias;
-          sensorArrayOld = sensorArray;
-        } 
-    break;
-    case 0b00011101:
-        if(sensorArrayOld != sensorArray){
-          bias = 1;
-          biasOld = bias;
-          sensorArrayOld = sensorArray;
-        } 
-    break;
 
-    case 0b00011110:
-        if(sensorArrayOld != sensorArray){
-          bias = 2;
-          biasOld = bias;
-          sensorArrayOld = sensorArray;
-        } 
-    break;
-    case 0b00011111:
-        if(sensorArrayOld != sensorArray){
-          bias = biasOld;
-          sensorArrayOld = sensorArray;
-        } 
-    break;
-    case 0b00000000:
-        if(sensorArrayOld != sensorArray){ 
-          sensorArrayOld = sensorArray;
-          if(++number_junc >= target_number_junc){
-            number_junc = 0;
-            robot_stop();
-            return 0;
-          }
-        }
-    break;
-    default:
-      bias = biasOld;
-    break;
-  }
-  
-  sprintf(line3_buf,"BIAS:%d",bias);
-  //Input = bias;
-  //myPID.Compute();
-  //if(bias < 0 ){
-  //robot(1,1,base_speed_left - Output,base_speed_right + Output);
-  //}
-  //else if( bias > 0){
-  //  robot(1,1,base_speed_left + Output,base_speed_right - Output);
-  //}
-  
-  //sprintf(line4_buf,"%.2f",Output);
-  //Serial.println(Output);
-  //oled_print(line4_buf, 0, LINE4);
-  sprintf(line4_buf,"%d",number_junc);
-  oled_print("      ",0, LINE4);
-  oled_print(line4_buf, 0, LINE4);
-  return 1;
-}
 void robot(unsigned char mLeft, unsigned char mRight, int sLeft, int sRight) {
   if (mLeft > 0) {
     IC2.digitalWrite(IN1, LOW);
@@ -356,6 +265,6 @@ void robot(unsigned char mLeft, unsigned char mRight, int sLeft, int sRight) {
     IC2.digitalWrite(IN3, HIGH);
     IC2.digitalWrite(IN4, LOW);
   }
-  ledcWrite(speed_left, sLeft);
-  ledcWrite(speed_right, sRight);
+  analogWrite(ENA, sLeft);
+  analogWrite(ENB, sRight);
 }
