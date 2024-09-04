@@ -3,8 +3,6 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h> //By Adafruit Version 2.4.0 Oled 128x32
-//#include <Ultrasonic.h>       //By Erick Simoes Version 3.0.0
-//#include <PID_v1.h>           //By Brett Beauregard
 #include "BluetoothSerial.h"
 
 //Mapping I/O
@@ -38,15 +36,6 @@
 //Declare FSM
 //===============================================
 enum {F1, STOP} State = F1;
-
-//PID Parameter
-//===============================================
-//Define Variables we'll be connecting to
-//double Setpoint, Input, Output;
-
-//Specify the links and initial tuning parameters
-//double Kp=2, Ki=5, Kd=1;
-//PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 
 //Setting Parameter for Peripheral
 //================================================
