@@ -119,10 +119,10 @@ void setup()
   IC2.digitalWrite(BUZ, LOW);
 
   //Set PWM
-  ledcSetup(speed1_Channel, freq, resolution);
-  ledcSetup(speed2_Channel, freq, resolution);
-  ledcAttachPin(ENA, speed1_Channel);
-  ledcAttachPin(ENB, speed2_Channel);
+  //ledcSetup(speed1_Channel, freq, resolution);
+  //ledcSetup(speed2_Channel, freq, resolution);
+  //ledcAttachPin(ENA, speed1_Channel);
+  //ledcAttachPin(ENB, speed2_Channel);
   
   oled_print("PRESS PB1 To Continue",0,LINE1);
   oled_print(line2_buf,0,LINE2);
