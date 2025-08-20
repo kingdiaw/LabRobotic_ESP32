@@ -34,9 +34,6 @@ const byte LINE2 = 8;
 const byte LINE3 = 16;
 const byte LINE4 = 24;
 
-//Setting HCSR-4
-const int Time_out = 3000;
-
 //Mapping Object
 //===============================================
 // Set i2c address
@@ -112,9 +109,7 @@ void loop()
   digitalWrite(TRIG, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG, LOW);
-  long duration = pulseIn(ECHO,HIGH,Time_out);
-  if ( duration == 0 ) {
-	duration = Time_out; }
+  long duration = pulseIn(ECHO,HIGH);
   distance = duration * 0.034 / 2;  // Calculate the distance in centimeters
   sprintf(line1_buf,"Distance(CM):%d",distance);    
   }
@@ -174,3 +169,4 @@ void beep(){
   delay(200);
   IC2.digitalWrite(BUZ, LOW);
 }
+
