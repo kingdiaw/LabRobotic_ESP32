@@ -298,7 +298,7 @@ byte linefollower(byte target_number_junc) {
   }
   else if ( bias > 3) {
     sL = dutyCycle;
-    if (sL > 0)sL = 255;
+    if (sL > 255)sL = 255;
     sR = 0;
     if (sR < 0) sR = 0;
   }
@@ -327,3 +327,4 @@ void robot(unsigned char mLeft, unsigned char mRight, int sLeft, int sRight) {
   analogWrite(ENA, sLeft);
   analogWrite(ENB, sRight);
 }
+
