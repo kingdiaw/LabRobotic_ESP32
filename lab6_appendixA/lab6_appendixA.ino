@@ -1,13 +1,11 @@
 #include "Arduino.h"
 #include "BluetoothSerial.h"
-#include "PCF8574.h"  //Library:https://github.com/xreef/PCF8574_library
+#include "PCF8574.h"  //PCF8574 library by Renzo Mischianti
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h> //By Adafruit Version 2.4.0 Oled 128x32
 #include <PixySPI_SS_eps32.h> //https://drive.google.com/file/d/1z82DBqcuNWMVMzOchMi640mwvrnkQEqq/view?usp=sharing 
-#include <Ultrasonic.h>       //Ultrasonic by Erick Simões version 3.0.0
-#include <Servo.h>       //ServoESP32 by Jaroslav Páral version 1.0.3
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
@@ -35,10 +33,6 @@
 //Setting Parameter for Peripheral
 //================================================
 //Setting PWM Properties
-const int freq = 1000; 
-const byte speed1_Channel = 0; 
-const byte speed2_Channel = 1;
-const byte resolution = 8; 
 byte dutyCycle=0;
 
 //Setting OLED Pixels
@@ -117,12 +111,6 @@ void setup()
   IC2.begin();
 
   IC2.digitalWrite(BUZ, LOW);
-
-  //Set PWM
-  //ledcSetup(speed1_Channel, freq, resolution);
-  //ledcSetup(speed2_Channel, freq, resolution);
-  //ledcAttachPin(ENA, speed1_Channel);
-  //ledcAttachPin(ENB, speed2_Channel);
   
   oled_print("PRESS PB1 To Continue",0,LINE1);
   oled_print(line2_buf,0,LINE2);
