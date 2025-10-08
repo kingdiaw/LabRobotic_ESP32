@@ -120,7 +120,7 @@ void setup() {
   dutyCycle = map(val, 0, ADC_Max, 0, 255);
 
   oled_print("PRESS PB1 To Continue", 0, LINE1);
-  sprintf(line2_buf, "speed:%d", val);
+  sprintf(line2_buf, "speed:%d", dutyCycle);
   oled_print(line2_buf, 0, LINE2);
   while (digitalRead(PB1) == HIGH);
   beep();
